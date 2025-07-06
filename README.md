@@ -37,24 +37,6 @@ A web-based music dashboard that fetches real-time album data from LastFM using 
   - Session-based login system
   - REST API integration with cURL
 
-## Setup Instructions
-
-1. **Clone or Download this repository** into your XAMPP `htdocs` directory.
-
-2. **Spotify API Setup:**
-
-   - Go to [Spotify Developer Dashboard](https://developer.spotify.com/dashboard)
-   - Create an App and get your **Client ID** and **Client Secret**
-   - Store them securely in `spotify-config.php`
-
-3. **Update Config Files:**
-
-   - Make sure your database and API keys are set up correctly.
-
-4. **Run the Project:**
-   - Start Apache via XAMPP.
-   - Visit `http://localhost/Nakamura/login.php`
-
 ## Credits
 
 Developed by **@desciii**
