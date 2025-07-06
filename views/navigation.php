@@ -23,11 +23,10 @@
     >
       <!-- Left: Logo/Brand -->
       <div class="flex items-center gap-2">
-        <img
-          src="/Nakamura/nakamura/assets/logo.png"
-          alt="Logo"
-          class="h-6 w-6"
-        />
+      <img src="/PHP/Nakamura/nakamura/assets/logo.png" 
+      alt="Logo" 
+      class="h-6 w-6" 
+      />
         <span class="text-lg font-bold tracking-wide">Nakamura</span>
       </div>
 
@@ -74,7 +73,7 @@
         </li>
         <li>
           <a
-            href="/Nakamura/nakamura/main/login.html"
+            href="/PHP/Nakamura/nakamura/main/logout.php"
             class="flex items-center gap-2 text-yellow-400 hover:text-white hover:bg-gray-800 px-3 py-2 rounded transition-all duration-200"
           >
             <i class="fa-solid fa-right-from-bracket"></i> Logout
