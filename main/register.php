@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
   $stmt->bind_param("sss", $username, $email, $password);
 
   if ($stmt->execute()) {
-    header("Location: login.html"); 
+    header("Location: login.php"); 
     exit;
   } else {
     echo "Registration failed: " . $conn->error;
