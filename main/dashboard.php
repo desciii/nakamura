@@ -1,12 +1,25 @@
 <?php
 session_start();
 
-// STEP 1: Access token check
-$accessToken = $_SESSION['spotify_access_token'] ?? $_COOKIE['spotify_token'] ?? null;
+// Restore session from cookies FIRST before anything else
+if (!isset($_SESSION['user_id']) && isset($_COOKIE['user_id'])) {
+    $_SESSION['user_id'] = $_COOKIE['user_id'];
+    $_SESSION['username'] = $_COOKIE['username'] ?? null;
+}
+if (!isset($_SESSION['spotify_access_token']) && isset($_COOKIE['spotify_token'])) {
+    $_SESSION['spotify_access_token'] = $_COOKIE['spotify_token'];
+}
+if (!isset($_SESSION['spotify_refresh_token']) && isset($_COOKIE['spotify_refresh_token'])) {
+    $_SESSION['spotify_refresh_token'] = $_COOKIE['spotify_refresh_token'];
+}
+
+// ✅ NOW we can safely check for access token
+$accessToken = $_SESSION['spotify_access_token'] ?? null;
 if (!$accessToken) {
-    header("Location: /PHP/Nakamura/nakamura/main/authorize.php");
+    header("Location: login.php");
     exit;
 }
+
 
 // STEP 2: Token validation
 function isSpotifyTokenExpired($token) {
@@ -76,7 +89,7 @@ function getPlaylistTracks($playlistId, $token) {
 }
 
 // STEP 5: Playlist list
-$playlistNames = ['RapCaviar', 'Billbord', 'Modern Jazz', 'Modern Indie','Discover Daily', 'Opium', 'Best Mumble Rap', 'AllOut2000s', 'VOLUME', 'R&B Mix', 'Alternative', 'Rock', 'Metal', 'Emo', 'Modern Day Rap'];
+$playlistNames = ['RapCaviar', 'Billboard', 'Modern Jazz', 'IndieMusic','Discover Daily', 'Opium', 'Best Mumble Rap', 'AllOut2000s', 'VOLUME', 'R&B Mix', 'Alternative', 'Rock', 'Metal', 'Emo', 'Modern Day Rap', 'Soul Classics'];
 
 $playlistTracks = [];
 foreach ($playlistNames as $name) {
