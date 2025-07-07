@@ -22,13 +22,18 @@
       class="bg-gray-900 px-6 py-3 flex items-center justify-between shadow flex-wrap"
     >
       <!-- Left: Logo/Brand -->
-      <div class="flex items-center gap-2">
-      <img src="/PHP/Nakamura/nakamura/assets/logo.png" 
-      alt="Logo" 
-      class="h-6 w-6" 
-      />
-        <span class="text-lg font-bold tracking-wide">Nakamura</span>
-      </div>
+      <form>
+        <ul>
+          <li>
+            <a href="dashboard.php" class="flex items-center gap-2">
+              <img src="/PHP/Nakamura/nakamura/assets/logo.png" 
+                  alt="Logo" 
+                  class="h-6 w-6" />
+              <span class="text-lg font-bold tracking-wide">Nakamura</span>
+            </a>
+          </li>
+        </ul>
+      </form>
 
       <!-- Middle: Search Bar -->
       <form
@@ -49,10 +54,10 @@
       <ul class="flex gap-4 text-sm items-center">
         <li>
           <a
-            href="dashboard.php"
+            href="discover.php"
             class="flex items-center gap-2 text-gray-300 hover:text-yellow-400 hover:bg-gray-800 px-3 py-2 rounded transition-all duration-200"
           >
-            <i class="fa-solid fa-chart-line"></i> Dashboard
+            <i class="fas fa-compact-disc"></i> Discover
           </a>
         </li>
         <li>

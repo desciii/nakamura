@@ -1,21 +1,11 @@
 <?php
-function loadEnv($filePath) {
-    if (!file_exists($filePath)) {
-        error_log("⚠️ .env file not found at: $filePath");
-        return;
-    }
+function loadEnv($path) {
+    if (!file_exists($path)) return;
 
-    $lines = file($filePath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     foreach ($lines as $line) {
-        $line = trim($line);
-        if ($line === '' || str_starts_with($line, '#')) continue;
-
-        [$key, $value] = explode('=', $line, 2);
-        $key = trim($key);
-        $value = trim($value);
-
-        if (!array_key_exists($key, $_ENV)) {
-            $_ENV[$key] = $value;
-        }
+        if (str_starts_with(trim($line), '#')) continue;
+        list($key, $value) = explode('=', $line, 2);
+        $_ENV[trim($key)] = trim($value);
     }
 }

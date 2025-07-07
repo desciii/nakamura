@@ -4,7 +4,7 @@ A Side Project named Nakamura - In Production
 
 # Nakamura
 
-A web-based music dashboard that fetches real-time album data from LastFM using their API. Users can search albums, view detailed info like cover art, artists, and producers. And overall rate Music and Albums. A fun side project to learn API integration and futher enhance Tailwind CSS knowledge.
+A web-based music dashboard that fetches real-time album data from Spotify's API using their API. Users can search albums, view detailed info like cover art, artists, and producers. And overall rate Music and Albums. A fun side project to learn API integration and futher enhance Tailwind CSS knowledge.
 
 ## Features - In Production
 
