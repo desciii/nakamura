@@ -1,6 +1,9 @@
 <?php
 session_start();
-if (isset($_SESSION['user_id'])) {
+include('db.php');
+
+// If already logged in, redirect to dashboard
+if (isset($_SESSION['username']) || isset($_COOKIE['username'])) {
     header("Location: dashboard.php");
     exit;
 }

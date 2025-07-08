@@ -15,7 +15,7 @@ if (!isset($_GET['code'])) {
 }
 $code = $_GET['code'];
 
-// STEP 2: Exchange code for access + refresh token
+// STEP 2: Exchange code for access token
 $tokenUrl = 'https://accounts.spotify.com/api/token';
 $headers = [
     "Authorization: Basic " . base64_encode("$clientId:$clientSecret"),
@@ -43,7 +43,6 @@ if (!isset($data['access_token'])) {
 }
 
 $accessToken = $data['access_token'];
-$refreshToken = $data['refresh_token'] ?? null;
 
 // STEP 3: Get Spotify user profile
 $userProfile = file_get_contents('https://api.spotify.com/v1/me', false, stream_context_create([
@@ -61,29 +60,20 @@ if (!$spotifyId) {
 }
 
 // STEP 4: Insert or update user in DB
-$stmt = $conn->prepare("SELECT id, refresh_token FROM users WHERE spotify_id = ?");
+$stmt = $conn->prepare("SELECT id FROM users WHERE spotify_id = ?");
 $stmt->bind_param("s", $spotifyId);
 $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
 if (!$user) {
-    // new user
-    $insert = $conn->prepare("INSERT INTO users (username, spotify_id, refresh_token) VALUES (?, ?, ?)");
-    $insert->bind_param("sss", $displayName, $spotifyId, $refreshToken);
+    $insert = $conn->prepare("INSERT INTO users (username, spotify_id) VALUES (?, ?)");
+    $insert->bind_param("ss", $displayName, $spotifyId);
     $insert->execute();
     $userId = $insert->insert_id;
     $insert->close();
 } else {
     $userId = $user['id'];
-
-    // update refresh token only if it's missing
-    if (!$user['refresh_token'] && $refreshToken) {
-        $update = $conn->prepare("UPDATE users SET refresh_token = ? WHERE id = ?");
-        $update->bind_param("si", $refreshToken, $userId);
-        $update->execute();
-        $update->close();
-    }
 }
 
 $stmt->close();
@@ -93,19 +83,14 @@ $conn->close();
 $_SESSION['user_id'] = $userId;
 $_SESSION['username'] = $displayName;
 $_SESSION['spotify_access_token'] = $accessToken;
-$_SESSION['spotify_refresh_token'] = $refreshToken;
 $_SESSION['spotify_user'] = $userData;
 
-// Persistent cookies (7 days)
 $expiry = time() + (86400 * 7);
-setcookie('spotify_token', $accessToken, $expiry, '/');
-setcookie('spotify_refresh_token', $refreshToken, $expiry, '/');
-setcookie('user_id', $userId, $expiry, '/');
-setcookie('username', $displayName, $expiry, '/');
+setcookie('spotify_token', $accessToken, time() + 604800, '/'); // 7 days
+setcookie('user_id', $userId, time() + 604800, '/');
+setcookie('username', $displayName, time() + 604800, '/');
 
-// ✅ Make sure session is saved
+// ✅ Save and redirect
 session_write_close();
-
-// ✅ Done — redirect
 header("Location: dashboard.php");
 exit;

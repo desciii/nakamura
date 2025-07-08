@@ -1,58 +1,25 @@
 <?php
 session_start();
 
-// Restore session from cookies FIRST before anything else
-if (!isset($_SESSION['user_id']) && isset($_COOKIE['user_id'])) {
-    $_SESSION['user_id'] = $_COOKIE['user_id'];
-    $_SESSION['username'] = $_COOKIE['username'] ?? null;
-}
-if (!isset($_SESSION['spotify_access_token']) && isset($_COOKIE['spotify_token'])) {
-    $_SESSION['spotify_access_token'] = $_COOKIE['spotify_token'];
-}
-if (!isset($_SESSION['spotify_refresh_token']) && isset($_COOKIE['spotify_refresh_token'])) {
-    $_SESSION['spotify_refresh_token'] = $_COOKIE['spotify_refresh_token'];
-}
-
-// ✅ NOW we can safely check for access token
-$accessToken = $_SESSION['spotify_access_token'] ?? null;
-if (!$accessToken) {
-    header("Location: login.php");
-    exit;
-}
-
-
-// STEP 2: Token validation
-function isSpotifyTokenExpired($token) {
-    $ch = curl_init("https://api.spotify.com/v1/me");
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_HTTPHEADER => ["Authorization: Bearer $token"]
-    ]);
-    curl_exec($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-    return $code !== 200;
-}
-
-if (isSpotifyTokenExpired($accessToken)) {
-    setcookie('spotify_token', '', time() - 3600, '/');
-    unset($_SESSION['spotify_access_token']);
-    header("Location: /PHP/Nakamura/nakamura/main/authorize.php");
-    exit;
-}
-
-// STEP 3: User session
-if (!isset($_SESSION['user_id']) && isset($_COOKIE['user_id'])) {
-    $_SESSION['user_id'] = $_COOKIE['user_id'];
+// Restore session from cookies
+if (!isset($_SESSION['username']) && isset($_COOKIE['username'])) {
     $_SESSION['username'] = $_COOKIE['username'];
+    $_SESSION['user_id'] = $_COOKIE['user_id'] ?? null;
+    $_SESSION['spotify_access_token'] = $_COOKIE['spotify_token'] ?? null;
 }
 
-if (!isset($_SESSION['user_id'])) {
+// If still not authenticated, redirect to login
+if (!isset($_SESSION['username']) || !isset($_SESSION['spotify_access_token'])) {
     header("Location: login.php");
     exit;
 }
 
-// STEP 4: Playlist functions
+// At this point, session is valid. Assign vars if needed.
+$username = $_SESSION['username'];
+$userId = $_SESSION['user_id'];
+$accessToken = $_SESSION['spotify_access_token'];
+
+// === Spotify Playlist Logic ===
 function searchPlaylistIdByName($name, $token) {
     $url = 'https://api.spotify.com/v1/search?q=' . urlencode($name) . '&type=playlist&limit=1';
     $ch = curl_init($url);
@@ -63,7 +30,6 @@ function searchPlaylistIdByName($name, $token) {
     $response = curl_exec($ch);
     $data = json_decode($response, true);
     curl_close($ch);
-
     return $data['playlists']['items'][0]['id'] ?? null;
 }
 
@@ -88,17 +54,12 @@ function getPlaylistTracks($playlistId, $token) {
     return $data['items'] ?? [];
 }
 
-// STEP 5: Playlist list
-$playlistNames = ['RapCaviar', 'Billboard', 'Modern Jazz', 'IndieMusic','Discover Daily', 'Opium', 'Best Mumble Rap', 'AllOut2000s', 'VOLUME', 'R&B Mix', 'Alternative', 'Rock', 'Metal', 'Emo', 'Modern Day Rap', 'Soul Classics'];
+$playlistNames = ['RapCaviar', 'Billboard', 'Modern Jazz', 'IndieMusic', 'Discover Daily', 'Opium', 'Best Mumble Rap', 'AllOut2000s', 'VOLUME', 'R&B Mix', 'Alternative', 'Rock', 'Metal', 'Clsasic Emo', 'Modern Day Rap', 'Soul Classics', 'Filipino Classics', 'Pop Punk'];
 
 $playlistTracks = [];
 foreach ($playlistNames as $name) {
     $playlistId = searchPlaylistIdByName($name, $accessToken);
-    if ($playlistId) {
-        $playlistTracks[$name] = getPlaylistTracks($playlistId, $accessToken);
-    } else {
-        $playlistTracks[$name] = [];
-    }
+    $playlistTracks[$name] = $playlistId ? getPlaylistTracks($playlistId, $accessToken) : [];
 }
 ?>
 
@@ -158,13 +119,13 @@ foreach ($playlistNames as $name) {
                   $name = $track['name'] ?? 'Unknown';
                   $artist = $track['artists'][0]['name'] ?? 'Unknown';
                 ?>
-                <div class="album-card w-[200px] flex-shrink-0 bg-gray-800 rounded-lg p-3 shadow-md cursor-pointer">
+                <a href="ratings.php?track_id=<?= urlencode($track['id']) ?>" class="album-card w-[200px] flex-shrink-0 bg-gray-800 rounded-lg p-3 shadow-md hover:scale-105 transition-transform">
                   <div class="h-[200px] w-full overflow-hidden rounded mb-3">
                     <img src="<?= htmlspecialchars($image) ?>" class="w-full h-full object-cover" alt="<?= htmlspecialchars($name) ?>" />
                   </div>
                   <p class="font-semibold truncate"><?= htmlspecialchars($name) ?></p>
                   <p class="text-sm text-gray-400 truncate"><?= htmlspecialchars($artist) ?></p>
-                </div>
+                </a>
               <?php endforeach; ?>
             </div>
           </div>

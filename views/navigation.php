@@ -45,7 +45,7 @@
         <input
           type="text"
           name="q"
-          placeholder="Search albums..."
+          placeholder="Search music"
           class="bg-transparent focus:outline-none text-sm w-full text-white"
         />
       </form>
@@ -57,7 +57,7 @@
             href="discover.php"
             class="flex items-center gap-2 text-gray-300 hover:text-yellow-400 hover:bg-gray-800 px-3 py-2 rounded transition-all duration-200"
           >
-            <i class="fas fa-microphone"></i> Discover
+            <i class="fas fa-microphone"></i> Artists
           </a>
         </li>
         <li>

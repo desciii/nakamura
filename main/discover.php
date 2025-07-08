@@ -2,23 +2,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-session_start();
-$accessToken = $_SESSION['spotify_access_token'] ?? $_COOKIE['spotify_token'] ?? null;
-
-if (!$accessToken) {
-    header("Location: /PHP/Nakamura/nakamura/main/authorize.php");
-    exit;
-}
-
-if (!isset($_SESSION['user_id']) && isset($_COOKIE['user_id'])) {
-    $_SESSION['user_id'] = $_COOKIE['user_id'];
-    $_SESSION['username'] = $_COOKIE['username'];
-}
-
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit;
-}
+require_once __DIR__ . '/session_bootstrap.php';
 
 // Get artist IDs from a playlist
 function getArtistsFromPlaylist($playlistId, $token) {
