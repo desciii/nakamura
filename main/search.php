@@ -96,7 +96,7 @@ if ($query) {
           $url = $artist['external_urls']['spotify'] ?? '#';
           ?>
             <div class="bg-gray-800 rounded-lg shadow p-4 text-center cursor-pointer hover:bg-gray-700"
-                onclick="window.location.href='artist_view.php?artist_id=<?= urlencode($id) ?>'">
+                onclick="window.location.href='artists_view.php?artist_id=<?= urlencode($id) ?>'">
             <img src="<?= htmlspecialchars($image) ?>" class="w-32 h-32 mx-auto object-cover rounded-full mb-3">
             <h2 class="text-base font-semibold truncate"><?= htmlspecialchars($name) ?></h2>
             <p class="text-sm text-gray-400">Artist</p>
