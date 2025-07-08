@@ -32,6 +32,47 @@ $artistData = json_decode(file_get_contents("https://api.spotify.com/v1/artists/
     ]
 ])), true);
 
+// Like / Unlike handler
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['like_toggle'])) {
+    $checkLike = $conn->prepare("SELECT id FROM track_likes WHERE user_id = ? AND track_id = ?");
+    $checkLike->bind_param("is", $_SESSION['user_id'], $trackId);
+    $checkLike->execute();
+    $checkLike->store_result();
+
+    if ($checkLike->num_rows > 0) {
+        // Unlike
+        $del = $conn->prepare("DELETE FROM track_likes WHERE user_id = ? AND track_id = ?");
+        $del->bind_param("is", $_SESSION['user_id'], $trackId);
+        $del->execute();
+        $del->close();
+    } else {
+        // Like
+        $ins = $conn->prepare("INSERT INTO track_likes (user_id, track_id) VALUES (?, ?)");
+        $ins->bind_param("is", $_SESSION['user_id'], $trackId);
+        $ins->execute();
+        $ins->close();
+    }
+
+    $checkLike->close();
+    header("Location: ratings.php?track_id=" . urlencode($trackId));
+    exit;
+}
+
+// Count total likes and check if this user liked the track
+$likesResult = $conn->prepare("SELECT COUNT(*) as total FROM track_likes WHERE track_id = ?");
+$likesResult->bind_param("s", $trackId);
+$likesResult->execute();
+$likesCount = $likesResult->get_result()->fetch_assoc()['total'] ?? 0;
+$likesResult->close();
+
+$userLiked = false;
+$checkLiked = $conn->prepare("SELECT 1 FROM track_likes WHERE user_id = ? AND track_id = ?");
+$checkLiked->bind_param("is", $_SESSION['user_id'], $trackId);
+$checkLiked->execute();
+$checkLiked->store_result();
+$userLiked = $checkLiked->num_rows > 0;
+$checkLiked->close();
+
 $artistImage = $artistData['images'][0]['url'] ?? null;
 $artistGenres = $artistData['genres'] ?? [];
 $artistFollowers = number_format($artistData['followers']['total'] ?? 0);
@@ -41,6 +82,8 @@ $stmt->bind_param("s", $trackId);
 $stmt->execute();
 $reviews = $stmt->get_result();
 $stmt->close();
+
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -51,16 +94,12 @@ $stmt->close();
   <link rel="icon" href="/PHP/Nakamura/nakamura/assets/logo.png" type="image/png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 </head>
-<body class="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 min-h-screen text-white">
+<body class="bg-[#0A1128] min-h-screen text-white">
+  <?php include __DIR__ . '/../views/navigation.php'; ?>
   <div class="container mx-auto px-4 py-8 max-w-7xl">
-    <a href="dashboard.php" class="inline-flex items-center gap-3 text-amber-400 hover:text-amber-300 transition-colors duration-200 mb-8 group">
-      <i class="fas fa-arrow-left text-lg group-hover:-translate-x-1 transition-transform duration-200"></i>
-      <span class="font-medium">Back to Dashboard</span>
-    </a>
-
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <div class="lg:col-span-1">
-        <div class="bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl p-6 shadow-2xl border border-slate-700">
+        <div class="bg-gray-800 rounded-2xl p-6 shadow-2xl border border-gray-700">
           <div class="relative mb-6">
             <img src="<?= htmlspecialchars($albumImage) ?>" class="w-full rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
             <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl"></div>
@@ -96,8 +135,16 @@ $stmt->close();
                 </div>
               </div>
             </div>
+                <form method="post" class="mt-6">
+                    <input type="hidden" name="like_toggle" value="1">
+                    <button type="submit"
+                        class="w-full py-2 px-4 rounded-xl shadow-lg text-white font-semibold transition-all duration-300
+                        <?= $userLiked ? 'bg-pink-500 hover:bg-pink-600' : 'bg-gray-700 hover:bg-pink-500' ?>">
+                        <i class="fa<?= $userLiked ? 's' : 'r' ?> fa-heart mr-2"></i>
+                        <?= $userLiked ? 'Liked' : 'Like this track' ?> (<?= $likesCount ?>)
+                    </button>
+                </form>
           </div>
-          
           <a href="rate.php?track_id=<?= urlencode($trackId) ?>&name=<?= urlencode($trackName) ?>&artist=<?= urlencode($artistName) ?>" 
              class="block w-full text-center bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 
                     text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl 
@@ -108,7 +155,7 @@ $stmt->close();
       </div>
 
       <div class="lg:col-span-2">
-        <div class="bg-gradient-to-b from-slate-800 to-slate-900 rounded-2xl p-6 shadow-2xl border border-slate-700">
+        <div class="bg-gray-800 rounded-2xl p-6 shadow-2xl border border-gray-700">
           <h2 class="text-2xl font-bold text-amber-300 mb-6 flex items-center gap-2">
             <i class="fas fa-comments"></i>
             User Reviews
@@ -123,7 +170,7 @@ $stmt->close();
           <?php else: ?>
             <div class="space-y-4">
               <?php while ($review = $reviews->fetch_assoc()): ?>
-                <div class="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-5 hover:bg-slate-700/50 transition-colors duration-200">
+                <div class="bg-gray-700/60 backdrop-blur-sm border border-gray-600 rounded-xl p-5 hover:bg-gray-700 transition-colors duration-200">
                   <div class="flex items-center justify-between mb-3">
                     <div class="flex items-center gap-3">
                       <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">

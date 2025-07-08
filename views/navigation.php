@@ -70,7 +70,7 @@
         </li>
         <li>
           <a
-            href="profile.php"
+            href="/PHP/Nakamura/nakamura/main/profile.php"
             class="flex items-center gap-2 text-gray-300 hover:text-yellow-400 hover:bg-gray-800 px-3 py-2 rounded transition-all duration-200"
           >
             <i class="fa-solid fa-user"></i> Profile
