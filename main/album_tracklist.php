@@ -87,6 +87,7 @@ $albumImage = $albumData['images'][0]['url'] ?? 'https://via.placeholder.com/300
 $artist = $albumData['artists'][0] ?? ['name' => 'Unknown', 'id' => null];
 $artistName = $artist['name'];
 $tracks = $albumData['tracks']['items'] ?? [];
+$artistId = $artist['id'] ?? null;
 ?>
 
 <!DOCTYPE html>
@@ -107,7 +108,13 @@ $tracks = $albumData['tracks']['items'] ?? [];
     <div class="md:col-span-1">
       <img src="<?= htmlspecialchars($albumImage) ?>" class="rounded-lg w-80 h-80 object-cover shadow-md mb-4 mt-10">
       <h1 class="text-xl font-semibold text-amber-300"><?= htmlspecialchars($albumName) ?></h1>
-      <p class="text-gray-400 text-sm mb-3">by <span class="text-white"><?= htmlspecialchars($artistName) ?></span></p>
+      <p class="text-gray-400 text-sm mb-3">
+      by 
+      <a href="artists_view.php?artist_id=<?= urlencode($artistId) ?>" 
+        class="text-white hover:underline">
+        <?= htmlspecialchars($artistName) ?>
+      </a>
+    </p>
       <a href="rate_album.php?album_id=<?= urlencode($albumId) ?>&name=<?= urlencode($albumName) ?>&artist=<?= urlencode($artistName) ?>"
          class="inline-block bg-green-500 hover:bg-green-600 text-white text-sm font-medium py-2 px-4 rounded transition mb-6">
          Rate This Album
