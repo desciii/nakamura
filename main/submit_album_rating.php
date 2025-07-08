@@ -40,5 +40,5 @@ if ($check->num_rows > 0) {
 $check->close();
 
 // Redirect back to album page
-header("Location: rate_album.php?album_id=" . urlencode($albumId));
+header("Location: album_tracklist.php?album_id=" . urlencode($_POST['album_id']));
 exit;

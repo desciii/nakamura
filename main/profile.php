@@ -171,17 +171,19 @@ if ($stmt) {
     <h2 class="text-xl font-semibold text-yellow-300 mb-3">Rated Tracks</h2>
     <div class="space-y-3 max-h-96 overflow-y-auto scrollbar-hide pr-1">
       <?php foreach ($ratings as $track): ?>
-        <div class="bg-gray-700 p-4 rounded-lg">
-          <div class="flex justify-between">
-            <div>
-              <div class="font-semibold"><?= $track['track_name'] ?></div>
-              <div class="text-sm text-gray-400"><?= $track['artist_name'] ?></div>
+        <a href="ratings.php?track_id=<?= urlencode($track['track_id']) ?>" class="block group bg-gray-700 hover:bg-gray-600 transition rounded-lg">
+          <div class="p-4">
+            <div class="flex justify-between">
+              <div>
+                <div class="font-semibold"><?= $track['track_name'] ?></div>
+                <div class="text-sm text-gray-400"><?= $track['artist_name'] ?></div>
+              </div>
+              <div class="text-yellow-400"><?= str_repeat('★', $track['rating']) ?></div>
             </div>
-            <div class="text-yellow-400"><?= str_repeat('★', $track['rating']) ?></div>
+            <p class="text-sm text-gray-300 italic mt-2">"<?= htmlspecialchars($track['thoughts']) ?>"</p>
+            <p class="text-xs text-gray-500 mt-1"><?= date('M j, Y', strtotime($track['created_at'])) ?></p>
           </div>
-          <p class="text-sm text-gray-300 italic mt-2">"<?= htmlspecialchars($track['thoughts']) ?>"</p>
-          <p class="text-xs text-gray-500 mt-1"><?= date('M j, Y', strtotime($track['created_at'])) ?></p>
-        </div>
+        </a>
       <?php endforeach; ?>
       <?php if (empty($ratings)): ?><p class="text-gray-400">No track ratings.</p><?php endif; ?>
     </div>
@@ -192,17 +194,19 @@ if ($stmt) {
     <h2 class="text-xl font-semibold text-yellow-400 mb-3">Rated Albums</h2>
     <div class="space-y-3 max-h-96 overflow-y-auto scrollbar-hide pr-1">
       <?php foreach ($ratedAlbums as $album): ?>
-        <div class="bg-gray-700 p-4 rounded-lg">
-          <div class="flex justify-between">
-            <div>
-              <div class="font-semibold"><?= $album['album_name'] ?></div>
-              <div class="text-sm text-gray-400"><?= $album['artist_name'] ?></div>
+        <a href="album_tracklist.php?album_id=<?= urlencode($album['album_id']) ?>" class="block group bg-gray-700 hover:bg-gray-600 transition rounded-lg">
+          <div class="p-4">
+            <div class="flex justify-between">
+              <div>
+                <div class="font-semibold"><?= $album['album_name'] ?></div>
+                <div class="text-sm text-gray-400"><?= $album['artist_name'] ?></div>
+              </div>
+              <div class="text-yellow-400"><?= str_repeat('★', $album['rating']) ?></div>
             </div>
-            <div class="text-yellow-400"><?= str_repeat('★', $album['rating']) ?></div>
+            <p class="text-sm text-gray-300 italic mt-2">"<?= htmlspecialchars($album['thoughts']) ?>"</p>
+            <p class="text-xs text-gray-500 mt-1"><?= date('M j, Y', strtotime($album['created_at'])) ?></p>
           </div>
-          <p class="text-sm text-gray-300 italic mt-2">"<?= htmlspecialchars($album['thoughts']) ?>"</p>
-          <p class="text-xs text-gray-500 mt-1"><?= date('M j, Y', strtotime($album['created_at'])) ?></p>
-        </div>
+        </a>
       <?php endforeach; ?>
       <?php if (empty($ratedAlbums)): ?><p class="text-gray-400">No album ratings.</p><?php endif; ?>
     </div>
