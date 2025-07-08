@@ -26,6 +26,10 @@ $artist = $trackData['artists'][0] ?? ['name' => 'Unknown', 'id' => null];
 $artistName = $artist['name'];
 $artistId = $artist['id'];
 
+$album = $trackData['album'] ?? null;
+$albumName = $album['name'] ?? 'Unknown Album';
+$albumId = $album['id'] ?? null;
+
 $artistData = json_decode(file_get_contents("https://api.spotify.com/v1/artists/$artistId", false, stream_context_create([
     'http' => [
         'header' => "Authorization: Bearer $accessToken"
@@ -102,17 +106,34 @@ $stmt->close();
     <div class="bg-gray-800 p-4 rounded-lg shadow md:col-span-1">
       <img src="<?= htmlspecialchars($albumImage) ?>" class="w-full rounded-md mb-4">
       <h1 class="text-xl font-semibold text-amber-300"><?= htmlspecialchars($trackName) ?></h1>
-      <p class="text-sm text-slate-400 mb-4">by <span class="text-white font-medium"><?= htmlspecialchars($artistName) ?></span></p>
+      <p class="text-sm text-slate-400 mb-4">
+        by <a href="artists_view.php?artist_id=<?= urlencode($artistId) ?>" 
+                class="text-white font-medium hover:underline hover:text-amber-400 transition">
+                <?= htmlspecialchars($artistName) ?>
+            </a>
+      </p>
 
       <?php if ($artistImage): ?>
       <div class="flex items-center gap-3 mb-4">
         <img src="<?= htmlspecialchars($artistImage) ?>" class="w-12 h-12 rounded-full border border-slate-600">
         <div>
           <p class="text-xs text-slate-400">Artist</p>
-          <p class="text-sm font-medium text-white"><?= htmlspecialchars($artistName) ?></p>
+          <a href="artists_view.php?artist_id=<?= urlencode($artistId) ?>" 
+            class="text-sm font-medium text-white hover:underline hover:text-amber-400 transition">
+            <?= htmlspecialchars($artistName) ?>
+          </a>
         </div>
       </div>
       <?php endif; ?>
+
+        <?php if ($albumId): ?>
+        <p class="text-sm text-slate-400 mb-2">
+            From <a href="album_tracklist.php?album_id=<?= urlencode($albumId) ?>"
+                    class="text-white font-medium hover:underline hover:text-green-400 transition">
+                    <?= htmlspecialchars($albumName) ?>
+                </a>
+        </p>
+        <?php endif; ?>
 
       <div class="text-sm space-y-2 mb-4">
         <div class="flex items-center gap-2 text-slate-300">

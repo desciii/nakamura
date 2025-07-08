@@ -54,7 +54,7 @@ function getPlaylistTracks($playlistId, $token) {
     return $data['items'] ?? [];
 }
 
-$playlistNames = ['RapCaviar', 'Billboard', 'Modern Jazz', 'IndieMusic', 'Discover Daily', 'Opium', 'Best Mumble Rap', 'AllOut2000s', 'VOLUME', 'R&B Mix', 'Alternative', 'Rock', 'Metal', 'Clsasic Emo', 'Modern Day Rap', 'Soul Classics', 'Filipino Classics', 'Shoegaze'];
+$playlistNames = ['RapCaviar', 'Billboard', 'Modern Jazz', 'IndieMusic', 'Discover Daily', 'Opium', 'Best Mumble Rap', 'AllOut2000s', 'VOLUME', 'R&B Mix', 'Alternative', 'Rock', 'Metal', 'Clsasic Emo', 'Modern Day Rap', 'Soul Classics', 'Filipino Classics', 'Shoegaze', 'Psychedelic'];
 
 $playlistTracks = [];
 foreach ($playlistNames as $name) {

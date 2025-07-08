@@ -184,7 +184,7 @@ $tracks = $albumData['tracks']['items'] ?? [];
             </div>
             <a href="ratings.php?track_id=<?= urlencode($track['id']) ?>"
                class="bg-green-500 hover:bg-green-600 text-white text-xs font-medium py-1 px-3 rounded transition">
-               Rate
+               View
             </a>
           </div>
         <?php endforeach; ?>
