@@ -174,18 +174,26 @@ $tracks = $albumData['tracks']['items'] ?? [];
       <h2 class="text-xl font-semibold mb-4">Tracklist</h2>
       <div class="space-y-3">
         <?php foreach ($tracks as $index => $track): ?>
-          <div class="flex items-center justify-between bg-gray-800 p-3 rounded-md hover:bg-gray-700 transition">
-            <div class="flex items-center gap-4">
-              <span class="text-gray-400 w-5 text-sm"><?= $index + 1 ?></span>
-              <div class="text-sm">
-                <p class="text-white font-medium truncate"><?= htmlspecialchars($track['name']) ?></p>
-                <p class="text-gray-400 text-xs truncate"><?= htmlspecialchars($artistName) ?></p>
+          <div class="bg-gray-800 p-3 rounded-md hover:bg-gray-700 transition w-full max-w-full">
+            <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
+              
+              <!-- Left Side (Track Info) -->
+              <div class="flex items-center gap-3 min-w-0 flex-1">
+                <span class="text-gray-400 text-sm flex-shrink-0"><?= $index + 1 ?></span>
+                <div class="min-w-0 w-full">
+                  <p class="text-white font-medium text-sm truncate"><?= htmlspecialchars($track['name']) ?></p>
+                  <p class="text-gray-400 text-xs truncate"><?= htmlspecialchars($artistName) ?></p>
+                </div>
+              </div>
+
+              <!-- Right Side (Button) -->
+              <div class="flex-shrink-0">
+                <a href="ratings.php?track_id=<?= urlencode($track['id']) ?>"
+                  class="bg-green-500 hover:bg-green-600 text-white text-xs font-medium py-1 px-3 rounded transition block">
+                  View
+                </a>
               </div>
             </div>
-            <a href="ratings.php?track_id=<?= urlencode($track['id']) ?>"
-               class="bg-green-500 hover:bg-green-600 text-white text-xs font-medium py-1 px-3 rounded transition">
-               View
-            </a>
           </div>
         <?php endforeach; ?>
       </div>

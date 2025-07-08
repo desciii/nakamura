@@ -139,7 +139,7 @@ if ($stmt) {
     <h2 class="text-xl font-semibold text-yellow-300 mb-3">Liked Albums</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-96 overflow-y-auto scrollbar-hide pr-1">
         <?php foreach ($likedAlbums as $album): ?>
-        <div class="bg-gray-700 p-2 rounded-lg text-sm">
+        <div class="bg-gray-800 p-2 rounded-lg text-sm">
             <img src="<?= $album['image'] ?>" class="w-full aspect-square object-cover mb-2 rounded">
             <div class="font-semibold truncate text-xs"><?= $album['name'] ?></div>
             <div class="text-gray-400 text-xs truncate"><?= $album['artist'] ?></div>
@@ -155,7 +155,7 @@ if ($stmt) {
     <h2 class="text-xl font-semibold text-yellow-300 mb-3">Liked Tracks</h2>
     <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-96 overflow-y-auto scrollbar-hide pr-1">
         <?php foreach ($likedTracks as $track): ?>
-        <div class="bg-gray-700 p-2 rounded-lg text-sm">
+        <div class="bg-gray-800 p-2 rounded-lg text-sm">
             <img src="<?= $track['image'] ?>" class="w-full aspect-square object-cover mb-2 rounded">
             <div class="font-semibold truncate text-xs"><?= $track['name'] ?></div>
             <div class="text-gray-400 text-xs truncate"><?= $track['artist'] ?></div>
@@ -171,7 +171,7 @@ if ($stmt) {
     <h2 class="text-xl font-semibold text-yellow-300 mb-3">Rated Tracks</h2>
     <div class="space-y-3 max-h-96 overflow-y-auto scrollbar-hide pr-1">
       <?php foreach ($ratings as $track): ?>
-        <a href="ratings.php?track_id=<?= urlencode($track['track_id']) ?>" class="block group bg-gray-700 hover:bg-gray-600 transition rounded-lg">
+        <a href="ratings.php?track_id=<?= urlencode($track['track_id']) ?>" class="block group bg-gray-800 hover:bg-gray-900 transition rounded-lg">
           <div class="p-4">
             <div class="flex justify-between">
               <div>
@@ -194,7 +194,7 @@ if ($stmt) {
     <h2 class="text-xl font-semibold text-yellow-400 mb-3">Rated Albums</h2>
     <div class="space-y-3 max-h-96 overflow-y-auto scrollbar-hide pr-1">
       <?php foreach ($ratedAlbums as $album): ?>
-        <a href="album_tracklist.php?album_id=<?= urlencode($album['album_id']) ?>" class="block group bg-gray-700 hover:bg-gray-600 transition rounded-lg">
+        <a href="album_tracklist.php?album_id=<?= urlencode($album['album_id']) ?>" class="block group bg-gray-800 hover:bg-gray-900 transition rounded-lg">
           <div class="p-4">
             <div class="flex justify-between">
               <div>

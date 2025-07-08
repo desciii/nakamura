@@ -63,7 +63,6 @@ foreach ($playlistNames as $name) {
 }
 ?>
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -91,14 +90,15 @@ foreach ($playlistNames as $name) {
 <body class="bg-[#0A1128] text-white">
 <?php include '/xampp/htdocs/PHP/Nakamura/nakamura/views/navigation.php'; ?>
 
-<div class="p-6">
+<div class="px-4 py-6 sm:px-6 md:px-8">
   <h1 class="text-3xl font-bold mb-6">Welcome, <?= htmlspecialchars($_SESSION['username']) ?> 🎧</h1>
 
   <?php foreach ($playlistTracks as $playlistName => $tracks): ?>
     <?php if (!empty($tracks)): ?>
       <section class="mb-12 section-container">
-        <h2 class="text-2xl font-semibold mb-4"><?= htmlspecialchars($playlistName) ?></h2>
-
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-xl sm:text-2xl font-semibold"><?= htmlspecialchars($playlistName) ?></h2>
+        </div>
         <button class="nav-button left absolute top-1/2 transform -translate-y-1/2 z-20 text-white w-12 h-12 rounded-full bg-black bg-opacity-50 hover:bg-opacity-70"
                 onclick="scrollAlbums('<?= md5($playlistName) ?>', 'left')">
           <i class="fas fa-chevron-left"></i>
@@ -119,12 +119,12 @@ foreach ($playlistNames as $name) {
                   $name = $track['name'] ?? 'Unknown';
                   $artist = $track['artists'][0]['name'] ?? 'Unknown';
                 ?>
-                <a href="ratings.php?track_id=<?= urlencode($track['id']) ?>" class="album-card w-[200px] flex-shrink-0 bg-gray-800 rounded-lg p-3 shadow-md hover:scale-105 transition-transform">
-                  <div class="h-[200px] w-full overflow-hidden rounded mb-3">
+                <a href="ratings.php?track_id=..." class="album-card w-[160px] sm:w-[180px] md:w-[200px] flex-shrink-0 bg-gray-800 rounded-lg p-3 shadow-md hover:scale-105 transition-transform">
+                  <div class="h-[160px] sm:h-[180px] md:h-[200px] w-full overflow-hidden rounded mb-3">
                     <img src="<?= htmlspecialchars($image) ?>" class="w-full h-full object-cover" alt="<?= htmlspecialchars($name) ?>" />
                   </div>
-                  <p class="font-semibold truncate"><?= htmlspecialchars($name) ?></p>
-                  <p class="text-sm text-gray-400 truncate"><?= htmlspecialchars($artist) ?></p>
+                    <p class="font-semibold truncate text-sm sm:text-base"><?= htmlspecialchars($name) ?></p>
+                    <p class="text-xs sm:text-sm text-gray-400 truncate"><?= htmlspecialchars($artist) ?></p>
                 </a>
               <?php endforeach; ?>
             </div>
