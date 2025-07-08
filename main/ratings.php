@@ -96,112 +96,95 @@ $stmt->close();
 </head>
 <body class="bg-[#0A1128] min-h-screen text-white">
   <?php include __DIR__ . '/../views/navigation.php'; ?>
-  <div class="container mx-auto px-4 py-8 max-w-7xl">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div class="lg:col-span-1">
-        <div class="bg-gray-800 rounded-2xl p-6 shadow-2xl border border-gray-700">
-          <div class="relative mb-6">
-            <img src="<?= htmlspecialchars($albumImage) ?>" class="w-full rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300">
-            <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-xl"></div>
-          </div>
-          
-          <h1 class="text-3xl font-bold text-amber-300 mb-3 leading-tight"><?= htmlspecialchars($trackName) ?></h1>
-          <p class="text-slate-300 mb-6 text-lg">by <span class="font-semibold text-white"><?= htmlspecialchars($artistName) ?></span></p>
-          
-          <?php if ($artistImage): ?>
-            <div class="flex items-center gap-4 mb-6">
-              <img src="<?= htmlspecialchars($artistImage) ?>" class="w-16 h-16 rounded-full shadow-lg border-2 border-slate-600">
-              <div>
-                <p class="text-slate-400 text-sm font-medium">Artist</p>
-                <p class="text-white font-semibold"><?= htmlspecialchars($artistName) ?></p>
-              </div>
-            </div>
-          <?php endif; ?>
-          
-          <div class="space-y-3 mb-6">
-            <div class="flex items-center gap-2">
-              <i class="fas fa-users text-slate-400"></i>
-              <span class="text-slate-300 text-sm">Followers:</span>
-              <span class="text-white font-semibold"><?= $artistFollowers ?></span>
-            </div>
-            <div class="flex items-start gap-2">
-              <i class="fas fa-music text-slate-400 mt-1"></i>
-              <div>
-                <span class="text-slate-300 text-sm">Genres:</span>
-                <div class="flex flex-wrap gap-1 mt-1">
-                  <?php foreach ($artistGenres as $genre): ?>
-                    <span class="bg-slate-700 text-slate-300 px-2 py-1 rounded-full text-xs"><?= htmlspecialchars($genre) ?></span>
-                  <?php endforeach; ?>
-                </div>
-              </div>
-            </div>
-                <form method="post" class="mt-6">
-                    <input type="hidden" name="like_toggle" value="1">
-                    <button type="submit"
-                        class="w-full py-2 px-4 rounded-xl shadow-lg text-white font-semibold transition-all duration-300
-                        <?= $userLiked ? 'bg-pink-500 hover:bg-pink-600' : 'bg-gray-700 hover:bg-pink-500' ?>">
-                        <i class="fa<?= $userLiked ? 's' : 'r' ?> fa-heart mr-2"></i>
-                        <?= $userLiked ? 'Liked' : 'Like this track' ?> (<?= $likesCount ?>)
-                    </button>
-                </form>
-          </div>
-          <a href="rate.php?track_id=<?= urlencode($trackId) ?>&name=<?= urlencode($trackName) ?>&artist=<?= urlencode($artistName) ?>" 
-             class="block w-full text-center bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 
-                    text-white font-semibold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl 
-                    transition-all duration-300 transform hover:scale-105">
-            <i class="fas fa-star mr-2"></i>Rate This Track
-          </a>
+  <div class="max-w-6xl mx-auto px-4 py-6">
+  <div class="grid md:grid-cols-3 gap-6">
+    <!-- Track Sidebar -->
+    <div class="bg-gray-800 p-4 rounded-lg shadow md:col-span-1">
+      <img src="<?= htmlspecialchars($albumImage) ?>" class="w-full rounded-md mb-4">
+      <h1 class="text-xl font-semibold text-amber-300"><?= htmlspecialchars($trackName) ?></h1>
+      <p class="text-sm text-slate-400 mb-4">by <span class="text-white font-medium"><?= htmlspecialchars($artistName) ?></span></p>
+
+      <?php if ($artistImage): ?>
+      <div class="flex items-center gap-3 mb-4">
+        <img src="<?= htmlspecialchars($artistImage) ?>" class="w-12 h-12 rounded-full border border-slate-600">
+        <div>
+          <p class="text-xs text-slate-400">Artist</p>
+          <p class="text-sm font-medium text-white"><?= htmlspecialchars($artistName) ?></p>
         </div>
       </div>
+      <?php endif; ?>
 
-      <div class="lg:col-span-2">
-        <div class="bg-gray-800 rounded-2xl p-6 shadow-2xl border border-gray-700">
-          <h2 class="text-2xl font-bold text-amber-300 mb-6 flex items-center gap-2">
-            <i class="fas fa-comments"></i>
-            User Reviews
-          </h2>
-          
-          <?php if ($reviews->num_rows === 0): ?>
-            <div class="text-center py-12">
-              <i class="fas fa-star text-6xl text-slate-600 mb-4"></i>
-              <p class="text-slate-400 text-lg mb-2">No reviews yet</p>
-              <p class="text-slate-500">Be the first to rate this track!</p>
-            </div>
-          <?php else: ?>
-            <div class="space-y-4">
-              <?php while ($review = $reviews->fetch_assoc()): ?>
-                <div class="bg-gray-700/60 backdrop-blur-sm border border-gray-600 rounded-xl p-5 hover:bg-gray-700 transition-colors duration-200">
-                  <div class="flex items-center justify-between mb-3">
-                    <div class="flex items-center gap-3">
-                      <div class="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center">
-                        <span class="text-black font-bold text-sm"><?= strtoupper(substr($review['username'], 0, 1)) ?></span>
-                      </div>
-                      <p class="text-amber-300 font-semibold">@<?= htmlspecialchars($review['username']) ?></p>
-                    </div>
-                    <div class="flex items-center gap-2">
-                      <div class="text-yellow-400 text-lg">
-                        <?= str_repeat('★', $review['rating']) ?>
-                        <span class="text-slate-600"><?= str_repeat('★', 5 - $review['rating']) ?></span>
-                      </div>
-                      <span class="text-slate-400 text-sm"><?= $review['rating'] ?>/5</span>
-                    </div>
-                  </div>
-                  
-                  <blockquote class="text-white italic mb-3 pl-4 border-l-2 border-amber-400 text-lg leading-relaxed">
-                    "<?= htmlspecialchars($review['thoughts']) ?>"
-                  </blockquote>
-                  
-                  <div class="flex items-center gap-2 text-slate-500 text-sm">
-                    <i class="fas fa-clock"></i>
-                    <span><?= date('F j, Y \a\t g:i A', strtotime($review['created_at'])) ?></span>
-                  </div>
-                </div>
-              <?php endwhile; ?>
-            </div>
-          <?php endif; ?>
+      <div class="text-sm space-y-2 mb-4">
+        <div class="flex items-center gap-2 text-slate-300">
+          <i class="fas fa-users text-xs"></i>
+          <span><?= $artistFollowers ?> followers</span>
         </div>
+        <?php if (!empty($artistGenres)): ?>
+        <div>
+          <p class="text-xs text-slate-400 mb-1">Genres:</p>
+          <div class="flex flex-wrap gap-1">
+            <?php foreach ($artistGenres as $genre): ?>
+              <span class="bg-slate-700 text-xs text-slate-300 px-2 py-1 rounded-full"><?= htmlspecialchars($genre) ?></span>
+            <?php endforeach; ?>
+          </div>
+        </div>
+        <?php endif; ?>
+      </div>
+
+      <!-- Like Button -->
+      <form method="post" class="mb-4">
+        <input type="hidden" name="like_toggle" value="1">
+        <button type="submit"
+          class="w-full py-2 text-sm rounded bg-gray-700 hover:bg-pink-500 transition font-semibold <?= $userLiked ? 'bg-pink-500' : '' ?>">
+          <i class="fa<?= $userLiked ? 's' : 'r' ?> fa-heart mr-2"></i>
+          <?= $userLiked ? 'Liked' : 'Like this track' ?> (<?= $likesCount ?>)
+        </button>
+      </form>
+
+      <!-- Rate Button -->
+      <a href="rate.php?track_id=<?= urlencode($trackId) ?>&name=<?= urlencode($trackName) ?>&artist=<?= urlencode($artistName) ?>"
+         class="block w-full text-center text-sm py-2 rounded bg-green-500 hover:bg-green-600 transition font-semibold">
+         <i class="fas fa-star mr-1"></i> Rate This Track
+      </a>
+    </div>
+
+    <!-- Reviews Section -->
+    <div class="md:col-span-2">
+      <div class="bg-gray-800 p-4 rounded-lg shadow">
+        <h2 class="text-lg font-semibold text-amber-300 mb-4 flex items-center gap-2">
+          <i class="fas fa-comments text-base"></i> User Reviews
+        </h2>
+
+        <?php if ($reviews->num_rows === 0): ?>
+        <div class="text-center text-slate-400 py-10">
+          <i class="fas fa-star text-4xl text-slate-600 mb-2"></i>
+          <p class="mb-1">No reviews yet</p>
+          <p class="text-sm">Be the first to rate this track!</p>
+        </div>
+        <?php else: ?>
+        <div class="space-y-3">
+          <?php while ($review = $reviews->fetch_assoc()): ?>
+          <div class="bg-gray-700 rounded-md p-4">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-amber-500 text-black font-bold text-xs flex items-center justify-center">
+                  <?= strtoupper(substr($review['username'], 0, 1)) ?>
+                </div>
+                <p class="text-sm font-medium text-white">@<?= htmlspecialchars($review['username']) ?></p>
+              </div>
+              <div class="text-yellow-400 text-sm font-semibold">
+                <?= str_repeat('★', $review['rating']) ?><span class="text-slate-600"><?= str_repeat('★', 5 - $review['rating']) ?></span>
+              </div>
+            </div>
+            <p class="text-sm italic text-white mb-2">"<?= htmlspecialchars($review['thoughts']) ?>"</p>
+            <p class="text-xs text-slate-400"><i class="fas fa-clock mr-1"></i><?= date('M j, Y \a\t g:i A', strtotime($review['created_at'])) ?></p>
+          </div>
+          <?php endwhile; ?>
+        </div>
+        <?php endif; ?>
       </div>
     </div>
   </div>
+</div>
 </body>
 </html>

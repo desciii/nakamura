@@ -40,14 +40,14 @@ function getTopTracksFromPlaylist($playlistId, $token, $limit = 10) {
     return $data['items'] ?? [];
 }
 
-$playlistNames = ['RapCaviar', 'Discover Weekly', 'Billboard'];
+$playlistNames = ['RapCaviar', 'Discover Weekly', 'Billboard', 'R&B Mix'];
 $artistMap = [];
 
 foreach ($playlistNames as $name) {
     $playlistId = searchPlaylistId($name, $accessToken);
     if (!$playlistId) continue;
 
-    $tracks = getTopTracksFromPlaylist($playlistId, $accessToken, 15);
+    $tracks = getTopTracksFromPlaylist($playlistId, $accessToken, 20);
     foreach ($tracks as $item) {
         $track = $item['track'] ?? null;
         if (!$track || !isset($track['artists'])) continue;
@@ -65,10 +65,9 @@ foreach ($playlistNames as $name) {
     }
 }
 
-// Add artist images
 $artists = array_values($artistMap);
 shuffle($artists);
-$selectedArtists = array_slice($artists, 0, 49); // 7x7 grid
+$selectedArtists = array_slice($artists, 0, 49);
 
 foreach ($selectedArtists as &$artist) {
     $data = fetchSpotify("https://api.spotify.com/v1/artists/{$artist['id']}", $accessToken);
@@ -87,11 +86,19 @@ unset($artist);
   <link rel="icon" href="/PHP/Nakamura/nakamura/assets/logo.png" type="image/png" />
   <style>
     .artist-card {
-      transition: transform 0.2s ease;
+      transition: all 0.2s ease;
     }
 
     .artist-card:hover {
-      transform: scale(1.05);
+      transform: translateY(-2px);
+    }
+
+    .artist-image {
+      transition: transform 0.2s ease;
+    }
+
+    .artist-card:hover .artist-image {
+      transform: scale(1.02);
     }
   </style>
 </head>
@@ -99,34 +106,47 @@ unset($artist);
 <body class="bg-[#0A1128] text-white min-h-screen">
 <?php include '/xampp/htdocs/PHP/Nakamura/nakamura/views/navigation.php'; ?>
 
-<div class="max-w-7xl mx-auto px-6 py-12">
-  <div class="text-center mb-10">
-    <h1 class="text-4xl font-bold mb-2">Welcome, <?= htmlspecialchars($username) ?> 🎷</h1>
-    <p class="text-gray-400 text-sm">Top Artists from RapCaviar, Discover Weekly & Billboard</p>
+<div class="max-w-7xl mx-auto px-4 py-8">
+  <div class="mb-8">
+    <h1 class="text-3xl font-bold mb-2">Welcome, <?= htmlspecialchars($username) ?> 🎷</h1>
+    <p class="text-gray-400">Top Artists from RapCaviar, Discover Weekly, R&B Mix & Billboard</p>
   </div>
 
   <?php if (empty($selectedArtists)): ?>
     <div class="text-center py-16">
-      <p class="text-red-400">No artists found from public Spotify playlists.</p>
+      <div class="bg-gray-800 rounded-xl p-8 max-w-md mx-auto">
+        <div class="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
+          <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-.895 2-2 2s-2-.895-2-2 .895-2 2-2 2 .895 2 2zm12-3c0 1.105-.895 2-2 2s-2-.895-2-2 .895-2 2-2 2 .895 2 2z"></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold mb-2">No Artists Found</h3>
+        <p class="text-gray-400">No artists found from public Spotify playlists.</p>
+      </div>
     </div>
   <?php else: ?>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-6">
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-4 sm:gap-6">
       <?php foreach ($selectedArtists as $artist): ?>
-        <div class="artist-card bg-gray-900 rounded-xl p-3 hover:bg-gray-800 shadow-md cursor-pointer transition-all"
-             onclick="window.open('<?= htmlspecialchars($artist['url']) ?>', '_blank')">
-          <div class="w-full aspect-square overflow-hidden rounded-lg mb-3 bg-gray-700">
-            <img src="<?= htmlspecialchars($artist['image']) ?>"
-                 alt="<?= htmlspecialchars($artist['name']) ?>"
-                 class="w-full h-full object-cover" />
+        <a href="artists_view.php?artist_id=<?= urlencode($artist['id']) ?>" class="artist-card bg-gray-800 hover:bg-gray-700 rounded-xl p-4 group shadow-lg block">
+          <div class="relative overflow-hidden rounded-lg mb-3 bg-gray-700">
+            <img src="<?= htmlspecialchars($artist['image']) ?>" alt="<?= htmlspecialchars($artist['name']) ?>" class="artist-image w-full aspect-square object-cover" />
+            <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <span class="bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full">View</span>
+            </div>
           </div>
-          <p class="text-xs text-center font-medium truncate text-gray-200">
+          <p class="text-xs text-center font-semibold truncate group-hover:text-green-400 transition-colors duration-200">
             <?= htmlspecialchars($artist['name']) ?>
           </p>
-        </div>
+        </a>
       <?php endforeach; ?>
     </div>
-    <div class="text-center mt-10">
-      <p class="text-sm text-gray-500">Showing <?= count($selectedArtists) ?> trending artists</p>
+
+    <div class="text-center mt-12">
+      <div class="bg-gray-800 rounded-lg p-4 inline-block">
+        <p class="text-sm text-gray-300">
+          Showing <span class="text-green-400 font-semibold"><?= count($selectedArtists) ?></span> trending artists
+        </p>
+      </div>
     </div>
   <?php endif; ?>
 </div>
