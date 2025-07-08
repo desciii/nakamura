@@ -1,137 +1,134 @@
 <?php
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
+session_start();
 
-require_once __DIR__ . '/session_bootstrap.php';
-
-// Get artist IDs from a playlist
-function getArtistsFromPlaylist($playlistId, $token) {
-    $url = "https://api.spotify.com/v1/playlists/$playlistId/tracks?limit=50";
-    $opts = ['http' => [
-        'method' => 'GET',
-        'header' => "Authorization: Bearer $token"
-    ]];
-
-    $json = @file_get_contents($url, false, stream_context_create($opts));
-    if (!$json) return [];
-
-    $data = json_decode($json, true);
-    $artistIds = [];
-
-    foreach ($data['items'] as $item) {
-        foreach ($item['track']['artists'] as $artist) {
-            $artistIds[] = $artist['id'];
-        }
-    }
-    return array_unique($artistIds);
+if (!isset($_SESSION['spotify_access_token']) && isset($_COOKIE['spotify_token'])) {
+    $_SESSION['spotify_access_token'] = $_COOKIE['spotify_token'];
+}
+if (!isset($_SESSION['user_id']) && isset($_COOKIE['user_id'])) {
+    $_SESSION['user_id'] = $_COOKIE['user_id'];
+    $_SESSION['username'] = $_COOKIE['username'];
 }
 
-// Get albums by artist
-function getAlbumsByArtist($artistId, $token) {
-    $url = "https://api.spotify.com/v1/artists/$artistId/albums?include_groups=album&market=PH&limit=5";
+if (!isset($_SESSION['spotify_access_token']) || !isset($_SESSION['user_id'])) {
+    die("🔒 Not logged in. Token missing.");
+}
+
+$accessToken = $_SESSION['spotify_access_token'];
+$username = $_SESSION['username'];
+
+function fetchSpotify($url, $token) {
     $opts = ['http' => [
         'method' => 'GET',
         'header' => "Authorization: Bearer $token"
     ]];
-    $json = @file_get_contents($url, false, stream_context_create($opts));
-    if (!$json) return [];
-    $data = json_decode($json, true);
+    $res = @file_get_contents($url, false, stream_context_create($opts));
+    return $res ? json_decode($res, true) : null;
+}
+
+function searchPlaylistId($playlistName, $token) {
+    $query = urlencode($playlistName);
+    $url = "https://api.spotify.com/v1/search?q=$query&type=playlist&limit=1";
+    $result = fetchSpotify($url, $token);
+    return $result['playlists']['items'][0]['id'] ?? null;
+}
+
+function getTopTracksFromPlaylist($playlistId, $token, $limit = 10) {
+    $url = "https://api.spotify.com/v1/playlists/$playlistId/tracks?limit=$limit";
+    $data = fetchSpotify($url, $token);
     return $data['items'] ?? [];
 }
 
-// Spotify’s trending playlists per genre
-$genrePlaylists = [
-    'pop' => '37i9dQZF1DWUa8ZRTfalHk',
-    'hip-hop' => '37i9dQZF1DX0XUsuxWHRQd',
-    'rnb' => '37i9dQZF1DX4SBhb3fqCJd',
-    'k-pop' => '37i9dQZF1DX9tPFwDMOaN1',
-    'rock' => '37i9dQZF1DWXRqgorJj26U',
-    'country' => '37i9dQZF1DX1lVhptIYRda',
-    'indie' => '37i9dQZF1DX2sUQwD7tbmL',
-    'dance' => '37i9dQZF1DX4dyzvuaRJ0n',
-    'opm' => '37i9dQZF1DWXbttAJcbphz',
-];
+$playlistNames = ['RapCaviar', 'Discover Weekly', 'Billboard'];
+$artistMap = [];
 
-$genreAlbums = [];
+foreach ($playlistNames as $name) {
+    $playlistId = searchPlaylistId($name, $accessToken);
+    if (!$playlistId) continue;
 
-foreach ($genrePlaylists as $genre => $playlistId) {
-    $artistIds = getArtistsFromPlaylist($playlistId, $accessToken);
-    $albums = [];
+    $tracks = getTopTracksFromPlaylist($playlistId, $accessToken, 15);
+    foreach ($tracks as $item) {
+        $track = $item['track'] ?? null;
+        if (!$track || !isset($track['artists'])) continue;
 
-    foreach ($artistIds as $artistId) {
-        foreach (getAlbumsByArtist($artistId, $accessToken) as $album) {
-            $albums[$album['id']] = $album;
+        foreach ($track['artists'] as $artist) {
+            $id = $artist['id'];
+            if (!isset($artistMap[$id])) {
+                $artistMap[$id] = [
+                    'id' => $id,
+                    'name' => $artist['name'],
+                    'url' => $artist['external_urls']['spotify'] ?? '#'
+                ];
+            }
         }
     }
-
-    $genreAlbums[$genre] = array_values($albums);
 }
+
+// Add artist images
+$artists = array_values($artistMap);
+shuffle($artists);
+$selectedArtists = array_slice($artists, 0, 49); // 7x7 grid
+
+foreach ($selectedArtists as &$artist) {
+    $data = fetchSpotify("https://api.spotify.com/v1/artists/{$artist['id']}", $accessToken);
+    $artist['image'] = $data['images'][0]['url'] ?? 'https://via.placeholder.com/150';
+}
+unset($artist);
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Discover Picks for You</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="icon" href="/PHP/Nakamura/nakamura/assets/logo.png" type="image/png" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <style>
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        .album-row { scroll-behavior: smooth; scroll-snap-type: x mandatory; }
-        .album-card { scroll-snap-align: start; transition: transform 0.3s ease; }
-        .album-card:hover { transform: scale(1.05); z-index: 10; }
-        .nav-button { transition: all 0.3s ease; backdrop-filter: blur(10px); opacity: 0; pointer-events: none; }
-        .nav-button:hover { background-color: rgba(255, 255, 255, 0.2); transform: scale(1.1); }
-        .section-container:hover .nav-button { opacity: 1; pointer-events: auto; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Discover</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="/PHP/Nakamura/nakamura/assets/logo.png" type="image/png" />
+  <style>
+    .artist-card {
+      transition: transform 0.2s ease;
+    }
+
+    .artist-card:hover {
+      transform: scale(1.05);
+    }
+  </style>
 </head>
 
-<body class="bg-[#0A1128] text-white">
+<body class="bg-[#0A1128] text-white min-h-screen">
 <?php include '/xampp/htdocs/PHP/Nakamura/nakamura/views/navigation.php'; ?>
 
-<div class="px-6 py-8">
-    <h1 class="text-4xl font-bold mb-6">Welcome, <?= htmlspecialchars($_SESSION['username']) ?> 🎧</h1>
+<div class="max-w-7xl mx-auto px-6 py-12">
+  <div class="text-center mb-10">
+    <h1 class="text-4xl font-bold mb-2">Welcome, <?= htmlspecialchars($username) ?> 🎷</h1>
+    <p class="text-gray-400 text-sm">Top Artists from RapCaviar, Discover Weekly & Billboard</p>
+  </div>
 
-    <h2 class="text-3xl font-bold mb-6">Discover Picks for You 🎶</h2>
-
-    <?php foreach ($genreAlbums as $genre => $albums): ?>
-        <?php if (!empty($albums)): ?>
-        <section class="mb-12 section-container">
-            <h3 class="text-2xl font-semibold mb-4"><?= ucfirst($genre) ?> Albums</h3>
-
-            <div id="<?= $genre ?>-row" class="album-row overflow-x-auto scrollbar-hide w-full">
-                <div class="flex flex-nowrap gap-4 w-max px-4">
-                    <?php foreach ($albums as $album): ?>
-                    <div class="album-card w-[200px] flex-shrink-0 bg-gray-800 rounded-lg p-3 shadow-md cursor-pointer"
-                         onclick="window.open('<?= htmlspecialchars($album['external_urls']['spotify']) ?>', '_blank')">
-                        <div class="h-[200px] w-full overflow-hidden rounded mb-3">
-                            <img src="<?= htmlspecialchars($album['images'][1]['url'] ?? 'https://via.placeholder.com/200x200') ?>"
-                                 class="w-full h-full object-cover"
-                                 alt="<?= htmlspecialchars($album['name']) ?>" />
-                        </div>
-                        <p class="font-semibold truncate"><?= htmlspecialchars($album['name']) ?></p>
-                        <p class="text-sm text-gray-400 truncate"><?= htmlspecialchars($album['artists'][0]['name']) ?></p>
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-            </div>
-        </section>
-        <?php endif; ?>
-    <?php endforeach; ?>
+  <?php if (empty($selectedArtists)): ?>
+    <div class="text-center py-16">
+      <p class="text-red-400">No artists found from public Spotify playlists.</p>
+    </div>
+  <?php else: ?>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 gap-6">
+      <?php foreach ($selectedArtists as $artist): ?>
+        <div class="artist-card bg-gray-900 rounded-xl p-3 hover:bg-gray-800 shadow-md cursor-pointer transition-all"
+             onclick="window.open('<?= htmlspecialchars($artist['url']) ?>', '_blank')">
+          <div class="w-full aspect-square overflow-hidden rounded-lg mb-3 bg-gray-700">
+            <img src="<?= htmlspecialchars($artist['image']) ?>"
+                 alt="<?= htmlspecialchars($artist['name']) ?>"
+                 class="w-full h-full object-cover" />
+          </div>
+          <p class="text-xs text-center font-medium truncate text-gray-200">
+            <?= htmlspecialchars($artist['name']) ?>
+          </p>
+        </div>
+      <?php endforeach; ?>
+    </div>
+    <div class="text-center mt-10">
+      <p class="text-sm text-gray-500">Showing <?= count($selectedArtists) ?> trending artists</p>
+    </div>
+  <?php endif; ?>
 </div>
-
-<script>
-function scrollAlbums(id, direction) {
-    const container = document.getElementById(id + '-row');
-    const scrollAmount = 220 * 3;
-    container.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-    });
-}
-</script>
 </body>
 </html>
