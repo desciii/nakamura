@@ -1,6 +1,6 @@
 # Nakamura
 
-A Side Project named Nakamura
+A Side Project named Nakamura - Considered Finished
 
 # Nakamura
 
@@ -16,6 +16,7 @@ A web-based music dashboard that fetches real-time album data from Spotify's API
 - Album Info Display (Cover, Artist, Release Date, Tracks)
 - Reusable PHP Components (e.g., Navigation Bar)
 - Dark Themed Dashboard with Responsive Design
+- Like Artists
 
 ## Technologies Used
 
