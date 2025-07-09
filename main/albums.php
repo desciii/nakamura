@@ -128,13 +128,13 @@ $albums = array_slice($albums, 0, 60);
     <!-- Albums Grid -->
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 sm:gap-6">
       <?php foreach ($albums as $album): ?>
-        <div class="album-card bg-gray-800 hover:bg-gray-700 rounded-xl p-4 cursor-pointer group shadow-lg"
-            onclick="window.location.href='album_tracklist.php?album_id=<?= urlencode($album['id']) ?>'">
+        <a href="album_tracklist.php?album_id=<?= urlencode($album['id']) ?>" 
+          class="album-card bg-gray-800 hover:bg-gray-700 rounded-xl p-4 group shadow-lg block">
           <!-- Album Cover -->
           <div class="relative overflow-hidden rounded-lg mb-3 bg-gray-700">
             <img src="<?= htmlspecialchars($album['image']) ?>" 
-                 alt="<?= htmlspecialchars($album['name']) ?>"
-                 class="album-image w-full aspect-square object-cover" />
+                alt="<?= htmlspecialchars($album['name']) ?>"
+                class="album-image w-full aspect-square object-cover" />
             
             <!-- Hover Play Button -->
             <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
@@ -145,7 +145,7 @@ $albums = array_slice($albums, 0, 60);
               </div>
             </div>
           </div>
-          
+
           <!-- Album Info -->
           <div class="space-y-1">
             <h3 class="text-sm font-semibold truncate group-hover:text-green-400 transition-colors duration-200">
@@ -155,7 +155,7 @@ $albums = array_slice($albums, 0, 60);
               <?= htmlspecialchars($album['artist']) ?>
             </p>
           </div>
-        </div>
+        </a>
       <?php endforeach; ?>
     </div>
 

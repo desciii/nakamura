@@ -181,9 +181,9 @@ $artistId = $artist['id'] ?? null;
       <h2 class="text-xl font-semibold mb-4">Tracklist</h2>
       <div class="space-y-3">
         <?php foreach ($tracks as $index => $track): ?>
-          <div class="bg-gray-800 p-3 rounded-md hover:bg-gray-700 transition w-full max-w-full">
-            <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-3">
-              
+          <div class="bg-gray-800 p-3 rounded-md hover:bg-gray-700 transition w-full overflow-hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-3 w-full">
+
               <!-- Left Side (Track Info) -->
               <div class="flex items-center gap-3 min-w-0 flex-1">
                 <span class="text-gray-400 text-sm flex-shrink-0"><?= $index + 1 ?></span>
