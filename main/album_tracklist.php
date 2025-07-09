@@ -182,7 +182,9 @@ $artistId = $artist['id'] ?? null;
       <div class="space-y-2 text-sm">
         <?php foreach ($tracks as $index => $track): ?>
         <div class="flex justify-between items-center bg-gray-700 hover:bg-gray-600 p-2 rounded">
-          <span class="truncate"><?= $index + 1 ?>. <?= htmlspecialchars($track['name']) ?></span>
+          <a href="ratings.php?track_id=<?= urlencode($track['id']) ?>" class="truncate hover:underline text-white">
+            <?= $index + 1 ?>. <?= htmlspecialchars($track['name']) ?>
+          </a>
           <a href="ratings.php?track_id=<?= urlencode($track['id']) ?>" class="text-green-400 hover:underline">Rate</a>
         </div>
         <?php endforeach; ?>
