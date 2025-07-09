@@ -73,7 +73,46 @@ function fetchSpotify($url, $token) {
 // Fetch artist info
 $artist = fetchSpotify("https://api.spotify.com/v1/artists/$artistId", $accessToken);
 $topTracks = fetchSpotify("https://api.spotify.com/v1/artists/$artistId/top-tracks?market=PH", $accessToken)['tracks'] ?? [];
-$albums = fetchSpotify("https://api.spotify.com/v1/artists/$artistId/albums?include_groups=album,single&limit=5", $accessToken)['items'] ?? [];
+function fetchAllAlbums($artistId, $accessToken) {
+    $albums = [];
+    $url = "https://api.spotify.com/v1/artists/$artistId/albums?include_groups=album&limit=50&market=PH"; // ← only "album"
+
+    while ($url) {
+        $response = fetchSpotify($url, $accessToken);
+        if (!$response || !isset($response['items'])) break;
+
+        $albums = array_merge($albums, $response['items']);
+        $url = $response['next'] ?? null;
+    }
+
+    return $albums;
+}
+
+$albums = fetchAllAlbums($artistId, $accessToken);
+
+$uniqueAlbums = [];
+$seen = [];
+
+foreach ($albums as $album) {
+    $name = strtolower(trim($album['name']));
+    if (!in_array($name, $seen)) {
+        $seen[] = $name;
+        $uniqueAlbums[] = $album;
+    }
+}
+
+$albums = $uniqueAlbums;
+
+// ✅ Only include albums with full release date precision
+$albums = array_filter($albums, function ($album) {
+    return isset($album['release_date_precision']) && $album['release_date_precision'] === 'day';
+});
+
+// ✅ Sort albums by release date descending
+usort($albums, function ($a, $b) {
+    return strtotime($b['release_date']) <=> strtotime($a['release_date']);
+});
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -126,16 +165,46 @@ $albums = fetchSpotify("https://api.spotify.com/v1/artists/$artistId/albums?incl
   </div>
 
   <!-- New Tracks -->
-  <?php
-  $albumsRaw = fetchSpotify("https://api.spotify.com/v1/artists/$artistId/albums?include_groups=album,single&limit=20&market=PH", $accessToken)['items'] ?? [];
-  usort($albumsRaw, function ($a, $b) {
-      return strtotime($b['release_date']) - strtotime($a['release_date']);
+<?php
+  function fetchAllAlbumsAndSingles($artistId, $accessToken) {
+      $albums = [];
+      $url = "https://api.spotify.com/v1/artists/$artistId/albums?include_groups=album,single&limit=50&market=PH";
+
+      while ($url) {
+          $response = fetchSpotify($url, $accessToken);
+          if (!$response || !isset($response['items'])) break;
+
+          $albums = array_merge($albums, $response['items']);
+          $url = $response['next'] ?? null;
+      }
+
+      return $albums;
+  }
+
+  $albumsRaw = fetchAllAlbumsAndSingles($artistId, $accessToken);
+  $albumsRaw = array_filter($albumsRaw, function ($a) {
+      return $a['release_date_precision'] === 'day';
+  });
+
+  $seen = [];
+  $filteredAlbums = [];
+
+  foreach ($albumsRaw as $album) {
+      $name = strtolower(trim($album['name']));
+      if (!in_array($name, $seen)) {
+          $seen[] = $name;
+          $filteredAlbums[] = $album;
+      }
+  }
+
+  usort($filteredAlbums, function ($a, $b) {
+      return strtotime($b['release_date']) <=> strtotime($a['release_date']);
   });
 
   $newTracks = [];
   $addedTrackIds = [];
 
-  foreach ($albumsRaw as $release) {
+  foreach ($filteredAlbums as $release) {
       if (count($newTracks) >= 8) break;
 
       $tracksData = fetchSpotify("https://api.spotify.com/v1/albums/{$release['id']}/tracks?limit=10", $accessToken);
@@ -171,25 +240,30 @@ $albums = fetchSpotify("https://api.spotify.com/v1/artists/$artistId/albums?incl
     </div>
   <?php endif; ?>
 
-  <!-- Recent Albums -->
+ <?php
+  usort($albums, function ($a, $b) {
+      return strtotime($b['release_date']) <=> strtotime($a['release_date']);
+  });
+  ?>
+
   <div>
-  <h2 class="text-2xl font-semibold mb-4">Latest Releases</h2>
-  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
-      <?php foreach ($albums as $album): ?>
-      <?php
-          $albumId = urlencode($album['id']);
-          $albumName = urlencode($album['name']);
-          $artistName = urlencode($album['artists'][0]['name'] ?? 'Unknown');
-      ?>
-      <a href="album_tracklist.php?album_id=<?= $albumId ?>&name=<?= $albumName ?>&artist=<?= $artistName ?>" class="block">
-          <div class="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition shadow">
-          <img src="<?= $album['images'][0]['url'] ?? '' ?>" class="w-full aspect-square rounded object-cover mb-2" />
-          <p class="text-sm font-medium truncate"><?= htmlspecialchars($album['name']) ?></p>
-          <p class="text-xs text-gray-400"><?= htmlspecialchars($album['release_date']) ?></p>
-          </div>
-      </a>
-      <?php endforeach; ?>
-  </div>
+    <h2 class="text-2xl font-semibold mb-4">Albums</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+        <?php foreach ($albums as $album): ?>
+        <?php
+            $albumId = urlencode($album['id']);
+            $albumName = urlencode($album['name']);
+            $artistName = urlencode($album['artists'][0]['name'] ?? 'Unknown');
+        ?>
+        <a href="album_tracklist.php?album_id=<?= $albumId ?>&name=<?= $albumName ?>&artist=<?= $artistName ?>" class="block">
+            <div class="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition shadow">
+                <img src="<?= $album['images'][0]['url'] ?? '' ?>" class="w-full aspect-square rounded object-cover mb-2" />
+                <p class="text-sm font-medium truncate"><?= htmlspecialchars($album['name']) ?></p>
+                <p class="text-xs text-gray-400"><?= htmlspecialchars($album['release_date']) ?></p>
+            </div>
+        </a>
+        <?php endforeach; ?>
+    </div>
   </div>
 </div>
 </body>
