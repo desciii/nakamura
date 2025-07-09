@@ -81,26 +81,57 @@ $albums = fetchSpotify("https://api.spotify.com/v1/artists/$artistId/albums?incl
     </div>
   </div>
 
-    <!-- Recent Albums -->
-    <div>
-    <h2 class="text-2xl font-semibold mb-4">Latest Releases</h2>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
-        <?php foreach ($albums as $album): ?>
-        <?php
-            $albumId = urlencode($album['id']);
-            $albumName = urlencode($album['name']);
-            $artistName = urlencode($album['artists'][0]['name'] ?? 'Unknown');
-        ?>
-        <a href="album_tracklist.php?album_id=<?= $albumId ?>&name=<?= $albumName ?>&artist=<?= $artistName ?>" class="block">
-            <div class="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition shadow">
-            <img src="<?= $album['images'][0]['url'] ?? '' ?>" class="w-full aspect-square rounded object-cover mb-2" />
-            <p class="text-sm font-medium truncate"><?= htmlspecialchars($album['name']) ?></p>
-            <p class="text-xs text-gray-400"><?= htmlspecialchars($album['release_date']) ?></p>
-            </div>
-        </a>
+  <!-- New Tracks (Singles & Albums) -->
+  <?php
+  $newTracks = [];
+  foreach ($albums as $release) {
+      $tracksData = fetchSpotify("https://api.spotify.com/v1/albums/{$release['id']}/tracks?limit=3", $accessToken);
+      foreach ($tracksData['items'] ?? [] as $t) {
+          $newTracks[] = [
+              'id' => $t['id'],
+              'name' => $t['name'],
+              'album_image' => $release['images'][0]['url'] ?? null,
+          ];
+      }
+  }
+  ?>
+  <?php if (!empty($newTracks)): ?>
+    <div class="mb-12">
+      <h2 class="text-2xl font-semibold mb-4">New Tracks</h2>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+        <?php foreach ($newTracks as $track): ?>
+          <div class="bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition cursor-pointer group relative">
+            <img src="<?= htmlspecialchars($track['album_image']) ?>" class="w-full aspect-square rounded mb-3 object-cover" />
+            <p class="text-sm font-semibold truncate"><?= htmlspecialchars($track['name']) ?></p>
+            <a href="ratings.php?track_id=<?= urlencode($track['id']) ?>" class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition">
+              <span class="bg-green-500 text-white px-3 py-1 rounded text-xs font-medium">Rate</span>
+            </a>
+          </div>
         <?php endforeach; ?>
+      </div>
     </div>
-    </div>
+  <?php endif; ?>
+
+  <!-- Recent Albums -->
+  <div>
+  <h2 class="text-2xl font-semibold mb-4">Latest Releases</h2>
+  <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+      <?php foreach ($albums as $album): ?>
+      <?php
+          $albumId = urlencode($album['id']);
+          $albumName = urlencode($album['name']);
+          $artistName = urlencode($album['artists'][0]['name'] ?? 'Unknown');
+      ?>
+      <a href="album_tracklist.php?album_id=<?= $albumId ?>&name=<?= $albumName ?>&artist=<?= $artistName ?>" class="block">
+          <div class="bg-gray-800 p-3 rounded-lg hover:bg-gray-700 transition shadow">
+          <img src="<?= $album['images'][0]['url'] ?? '' ?>" class="w-full aspect-square rounded object-cover mb-2" />
+          <p class="text-sm font-medium truncate"><?= htmlspecialchars($album['name']) ?></p>
+          <p class="text-xs text-gray-400"><?= htmlspecialchars($album['release_date']) ?></p>
+          </div>
+      </a>
+      <?php endforeach; ?>
+  </div>
+  </div>
 </div>
 </body>
 </html>

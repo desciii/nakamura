@@ -119,12 +119,12 @@ foreach ($playlistNames as $name) {
                   $name = $track['name'] ?? 'Unknown';
                   $artist = $track['artists'][0]['name'] ?? 'Unknown';
                 ?>
-                <a href="ratings.php?track_id=..." class="album-card w-[160px] sm:w-[180px] md:w-[200px] flex-shrink-0 bg-gray-800 rounded-lg p-3 shadow-md hover:scale-105 transition-transform">
+                <a href="ratings.php?track_id=<?= urlencode($track['id']) ?>" class="album-card w-[160px] sm:w-[180px] md:w-[200px] flex-shrink-0 bg-gray-800 rounded-lg p-3 shadow-md hover:scale-105 transition-transform">
                   <div class="h-[160px] sm:h-[180px] md:h-[200px] w-full overflow-hidden rounded mb-3">
                     <img src="<?= htmlspecialchars($image) ?>" class="w-full h-full object-cover" alt="<?= htmlspecialchars($name) ?>" />
                   </div>
-                    <p class="font-semibold truncate text-sm sm:text-base"><?= htmlspecialchars($name) ?></p>
-                    <p class="text-xs sm:text-sm text-gray-400 truncate"><?= htmlspecialchars($artist) ?></p>
+                  <p class="font-semibold truncate text-sm sm:text-base"><?= htmlspecialchars($name) ?></p>
+                  <p class="text-xs sm:text-sm text-gray-400 truncate"><?= htmlspecialchars($artist) ?></p>
                 </a>
               <?php endforeach; ?>
             </div>
