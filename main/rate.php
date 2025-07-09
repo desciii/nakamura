@@ -56,58 +56,75 @@ if ($lyricsJson) {
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Rate Song</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="icon" href="/PHP/Nakamura/nakamura/assets/logo.png" type="image/png" />
+  <link rel="icon" href="/PHP/Nakamura/nakamura/assets/logo.png" type="image/png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     .star {
       font-size: 2rem;
-      color: #ccc;
+      color: #9CA3AF;
       cursor: pointer;
+      transition: color 0.2s;
     }
     .star.selected {
       color: #FFD700;
     }
+    .star:hover {
+      color: #FBBF24;
+    }
   </style>
 </head>
-<body class="bg-[#0A1128] text-white min-h-screen flex flex-col items-center justify-center p-4">
-  <div class="bg-gray-800 p-6 rounded-xl shadow-lg text-center max-w-md w-full">
-    <a href="dashboard.php" class="flex items-center gap-2 text-sm text-yellow-400 hover:underline mt-2 w-fit">
-    <i class="fas fa-arrow-left"></i>
+<body class="bg-[#0A1128] text-white min-h-screen flex items-center justify-center px-4 py-6">
+
+  <div class="bg-gray-800 p-5 sm:p-6 rounded-xl shadow-lg w-full max-w-sm space-y-5">
+
+    <a href="javascript:history.back()" class="text-sm text-yellow-400 hover:underline flex items-center gap-1 w-fit">
+      <i class="fas fa-arrow-left"></i> Back
     </a>
-    <h1 class="text-2xl font-bold mb-4">Rate This Song</h1>
 
-    <img src="<?= htmlspecialchars($albumImage) ?>" alt="Album Cover" class="w-32 h-32 mx-auto rounded mb-4 shadow-lg">
-    
-    <?php if ($artistImage): ?>
-      <img src="<?= htmlspecialchars($artistImage) ?>" alt="Artist" class="w-20 h-20 rounded-full mx-auto mb-2 border-2 border-yellow-400">
-    <?php endif; ?>
+    <div class="space-y-3 text-center">
+      <h1 class="text-xl sm:text-2xl font-bold">Rate This Song</h1>
 
-    <h2 class="text-yellow-300 text-xl font-semibold mb-1"><?= htmlspecialchars($trackName) ?></h2>
-    <p class="text-gray-400 mb-4">by <?= htmlspecialchars($artistName) ?></p>
+      <img src="<?= htmlspecialchars($albumImage) ?>" alt="Album Cover"
+           class="w-28 h-28 mx-auto rounded-md shadow-lg">
 
-    <form method="post" action="submit_rating.php">
+      <?php if ($artistImage): ?>
+        <img src="<?= htmlspecialchars($artistImage) ?>" alt="Artist"
+             class="w-16 h-16 mx-auto rounded-full border-2 border-yellow-400">
+      <?php endif; ?>
+
+      <h2 class="text-lg sm:text-xl font-semibold text-yellow-300">
+        <?= htmlspecialchars($trackName) ?>
+      </h2>
+      <p class="text-sm text-gray-400">by <?= htmlspecialchars($artistName) ?></p>
+    </div>
+
+    <form method="post" action="submit_rating.php" class="space-y-4">
       <input type="hidden" name="track_id" value="<?= htmlspecialchars($trackId) ?>">
       <input type="hidden" name="track_name" value="<?= htmlspecialchars($trackName) ?>">
       <input type="hidden" name="artist_name" value="<?= htmlspecialchars($artistName) ?>">
       <input type="hidden" name="rating" id="ratingInput">
 
-      <div id="stars" class="flex justify-center mb-4">
+      <div id="stars" class="flex justify-center gap-2">
         <?php for ($i = 1; $i <= 5; $i++): ?>
           <i class="fas fa-star star" data-value="<?= $i ?>"></i>
         <?php endfor; ?>
       </div>
 
-      <label for="thoughts" class="block text-left mb-1 font-medium">Your Thoughts:</label>
-      <textarea name="thoughts" id="thoughts" rows="4"
-        class="w-full p-2 rounded bg-gray-700 text-white mb-4"
-        placeholder="Write what you felt about this track..."></textarea>
+      <div>
+        <label for="thoughts" class="block text-sm font-medium text-gray-300 mb-1">Your Thoughts</label>
+        <textarea name="thoughts" id="thoughts" rows="4"
+          class="w-full p-2 text-sm bg-gray-800 rounded resize-none border border-white"
+          placeholder="What did you feel about this track?"></textarea>
+      </div>
 
-      <button type="submit" class="w-full bg-green-500 hover:bg-green-600 py-2 rounded font-semibold mb-3">
+      <button type="submit"
+        class="w-full bg-green-600 hover:bg-green-700 py-2 rounded-md font-semibold text-sm transition">
         Submit
       </button>
     </form>

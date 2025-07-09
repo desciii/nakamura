@@ -106,7 +106,7 @@ if ($query) {
     <?php endif; ?>
 
     <?php if (!empty($artistAlbums)): ?>
-      <h2 class="text-xl font-semibold mb-3">Recent Albums</h2>
+      <h2 class="text-xl font-semibold mb-3">Albums</h2>
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         <?php foreach ($artistAlbums as $album): ?>
             <div class="bg-gray-900 rounded-lg shadow p-3 hover:bg-gray-800 cursor-pointer"
