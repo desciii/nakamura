@@ -122,7 +122,7 @@ if ($stmt) {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title><?= htmlspecialchars($spotifyName) ?> — Profile</title>
+  <title><?= htmlspecialchars($spotifyName) ?> - Profile</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" href="/PHP/Nakamura/nakamura/assets/logo.png">
   <style>

@@ -98,6 +98,15 @@ $artistId = $artist['id'] ?? null;
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" href="/PHP/Nakamura/nakamura/assets/logo.png" type="image/png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    .tracklist-scroll::-webkit-scrollbar {
+      display: none;
+    }
+    .tracklist-scroll {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
 </head>
 <body class="bg-[#0A1128] text-white min-h-screen">
 <?php include __DIR__ . '/../views/navigation.php'; ?>
@@ -177,7 +186,7 @@ $artistId = $artist['id'] ?? null;
     </div>
 
     <!-- Tracklist -->
-    <div class="bg-gray-800 p-4 rounded-lg max-h-[480px] overflow-y-auto tracklist-scroll">
+    <div class="bg-gray-800 p-4 rounded-lg max-h-[480px] overflow-y-auto w-full sm:w-[480px] mt-10 tracklist-scroll">
       <h2 class="text-lg text-amber-300 mb-3">Tracklist</h2>
       <div class="space-y-2 text-sm">
         <?php foreach ($tracks as $index => $track): ?>
