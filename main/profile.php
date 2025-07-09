@@ -63,6 +63,27 @@ if ($stmt) {
     }
 }
 
+// Fetch Liked Artists
+$likedArtists = [];
+$stmt = $conn->prepare("SELECT artist_id FROM artist_likes WHERE user_id = ?");
+if ($stmt) {
+    $stmt->bind_param("i", $userId);
+    $stmt->execute();
+    $artistIds = array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'artist_id');
+    $stmt->close();
+
+    foreach ($artistIds as $artistId) {
+        $artist = fetchSpotify("https://api.spotify.com/v1/artists/$artistId", $accessToken);
+        if ($artist && isset($artist['id'])) {
+            $likedArtists[] = [
+                'id' => $artist['id'],
+                'name' => $artist['name'],
+                'image' => $artist['images'][0]['url'] ?? null
+            ];
+        }
+    }
+}
+
 // Fetch Liked Albums
 $likedAlbums = [];
 $stmt = $conn->prepare("SELECT album_id FROM album_likes WHERE user_id = ?");
@@ -79,6 +100,7 @@ if ($stmt) {
                 'id' => $album['id'],
                 'name' => $album['name'],
                 'artist' => $album['artists'][0]['name'] ?? 'Unknown',
+                'artist_id' => $album['artists'][0]['id'] ?? null, // ✅ Add this
                 'image' => $album['images'][0]['url'] ?? null
             ];
         }
@@ -104,8 +126,14 @@ if ($stmt) {
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" href="/PHP/Nakamura/nakamura/assets/logo.png">
   <style>
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none; 
+    scrollbar-width: none;    
+  }
+    
   </style>
 </head>
 <body class="bg-[#0A1128] text-white">
@@ -134,37 +162,54 @@ if ($stmt) {
     </div>
   </div>
 
-    <!-- Liked Albums -->
-    <div>
-    <h2 class="text-xl font-semibold text-yellow-300 mb-3">Liked Albums</h2>
-    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-96 overflow-y-auto scrollbar-hide pr-1">
-        <?php foreach ($likedAlbums as $album): ?>
-        <div class="bg-gray-800 p-2 rounded-lg text-sm">
-            <img src="<?= $album['image'] ?>" class="w-full aspect-square object-cover mb-2 rounded">
-            <div class="font-semibold truncate text-xs"><?= $album['name'] ?></div>
-            <div class="text-gray-400 text-xs truncate"><?= $album['artist'] ?></div>
-            <a href="album_tracklist.php?album_id=<?= $album['id'] ?>" class="text-green-400 text-xs hover:underline">View Album</a>
-        </div>
-        <?php endforeach; ?>
-        <?php if (empty($likedAlbums)): ?><p class="text-gray-400">No liked albums.</p><?php endif; ?>
-    </div>
-    </div>
+  <!-- Liked Artists -->
+  <div class="section-container">
+    <h2 class="text-xl font-semibold text-yellow-300 mb-3">Liked Artists</h2>
 
-    <!-- Liked Tracks -->
-    <div>
-    <h2 class="text-xl font-semibold text-yellow-300 mb-3">Liked Tracks</h2>
-    <div class="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-96 overflow-y-auto scrollbar-hide pr-1">
-        <?php foreach ($likedTracks as $track): ?>
-        <div class="bg-gray-800 p-2 rounded-lg text-sm">
-            <img src="<?= $track['image'] ?>" class="w-full aspect-square object-cover mb-2 rounded">
-            <div class="font-semibold truncate text-xs"><?= $track['name'] ?></div>
-            <div class="text-gray-400 text-xs truncate"><?= $track['artist'] ?></div>
-            <a href="ratings.php?track_id=<?= $track['id'] ?>" class="text-green-400 text-xs hover:underline">View Review</a>
+    <!-- Scrollable Row (scroll enabled, scrollbar hidden) -->
+    <div id="liked-artists-row" class="flex gap-4 overflow-x-auto pr-1 album-row scrollbar-hide">
+      <?php foreach ($likedArtists as $artist): ?>
+        <div class="bg-gray-800 p-2 rounded-lg text-sm text-center flex-shrink-0 w-40">
+          <img src="<?= $artist['image'] ?>" class="w-full aspect-square object-cover mb-2 rounded-full border-2 border-green-400">
+          <div class="font-semibold truncate text-xs"><?= $artist['name'] ?></div>
+          <a href="artists_view.php?artist_id=<?= $artist['id'] ?>" class="text-green-400 text-xs hover:underline">View Artist</a>
         </div>
-        <?php endforeach; ?>
-        <?php if (empty($likedTracks)): ?><p class="text-gray-400">No liked tracks.</p><?php endif; ?>
+      <?php endforeach; ?>
+      <?php if (empty($likedArtists)): ?><p class="text-gray-400">No liked artists.</p><?php endif; ?>
     </div>
+  </div>
+
+  <!-- Liked Albums -->
+  <div class="section-container">
+    <h2 class="text-xl font-semibold text-yellow-300 mb-3">Liked Albums</h2>
+    <div id="liked-albums-row" class="flex gap-4 overflow-x-auto pr-1 scrollbar-hide album-row">
+      <?php foreach ($likedAlbums as $album): ?>
+        <div class="bg-gray-800 p-2 rounded-lg text-sm flex-shrink-0 w-40">
+          <img src="<?= $album['image'] ?>" class="w-full aspect-square object-cover mb-2 rounded">
+          <div class="font-semibold truncate text-xs"><?= $album['name'] ?></div>
+          <a href="artists_view.php?artist_id=<?= urlencode($album['artist_id']) ?>" class="text-gray-400 text-xs hover:underline block truncate"><?= htmlspecialchars($album['artist']) ?></a>
+          <a href="album_tracklist.php?album_id=<?= $album['id'] ?>" class="text-green-400 text-xs hover:underline">View Album</a>
+        </div>
+      <?php endforeach; ?>
+      <?php if (empty($likedAlbums)): ?><p class="text-gray-400">No liked albums.</p><?php endif; ?>
     </div>
+  </div>
+
+  <!-- Liked Tracks -->
+  <div class="section-container mt-10">
+    <h2 class="text-xl font-semibold text-yellow-300 mb-3">Liked Tracks</h2>
+    <div id="liked-tracks-row" class="flex gap-4 overflow-x-auto pr-1 scrollbar-hide album-row">
+      <?php foreach ($likedTracks as $track): ?>
+        <div class="bg-gray-800 p-2 rounded-lg text-sm flex-shrink-0 w-40">
+          <img src="<?= $track['image'] ?>" class="w-full aspect-square object-cover mb-2 rounded">
+          <div class="font-semibold truncate text-xs"><?= $track['name'] ?></div>
+          <div class="text-gray-400 text-xs truncate"><?= $track['artist'] ?></div>
+          <a href="ratings.php?track_id=<?= $track['id'] ?>" class="text-green-400 text-xs hover:underline">View Review</a>
+        </div>
+      <?php endforeach; ?>
+      <?php if (empty($likedTracks)): ?><p class="text-gray-400">No liked tracks.</p><?php endif; ?>
+    </div>
+  </div>
 
   <!-- Rated Tracks -->
   <div>
@@ -212,5 +257,31 @@ if ($stmt) {
     </div>
   </div>
 </div>
+
+<script>
+  function scrollAlbums(id, direction) {
+    const container = document.getElementById(id + '-row');
+    const scrollAmount = 220;
+    const itemsToScroll = 3;
+
+    container.scrollBy({
+      left: direction === 'left' ? -scrollAmount * itemsToScroll : scrollAmount * itemsToScroll,
+      behavior: 'smooth'
+    });
+  }
+
+  document.querySelectorAll('.album-row').forEach(row => {
+    row.addEventListener('wheel', e => {
+      if (e.deltaY !== 0) {
+        e.preventDefault();
+        row.scrollBy({
+          left: e.deltaY > 0 ? 220 : -220,
+          behavior: 'smooth'
+        });
+      }
+    });
+  });
+</script>
+
 </body>
 </html>

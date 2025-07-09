@@ -2,6 +2,7 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 session_start();
+require_once __DIR__ . '/db.php';
 
 if (!isset($_SESSION['spotify_access_token']) && isset($_COOKIE['spotify_token'])) {
     $_SESSION['spotify_access_token'] = $_COOKIE['spotify_token'];
@@ -22,6 +23,43 @@ $artistId = $_GET['artist_id'] ?? null;
 if (!$artistId) {
     die("❌ No artist ID provided.");
 }
+
+$userId = $_SESSION['user_id'];
+
+// Like/Unlike handler
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['like_artist'])) {
+    $stmt = $conn->prepare("SELECT id FROM artist_likes WHERE user_id = ? AND artist_id = ?");
+    $stmt->bind_param("is", $userId, $artistId);
+    $stmt->execute();
+    $stmt->store_result();
+
+    if ($stmt->num_rows > 0) {
+        // Already liked → Unlike
+        $del = $conn->prepare("DELETE FROM artist_likes WHERE user_id = ? AND artist_id = ?");
+        $del->bind_param("is", $userId, $artistId);
+        $del->execute();
+        $del->close();
+    } else {
+        // Not liked → Like
+        $ins = $conn->prepare("INSERT INTO artist_likes (user_id, artist_id) VALUES (?, ?)");
+        $ins->bind_param("is", $userId, $artistId);
+        $ins->execute();
+        $ins->close();
+    }
+
+    $stmt->close();
+    header("Location: artists_view.php?artist_id=" . urlencode($artistId));
+    exit;
+}
+
+// Check if user liked the artist
+$userLiked = false;
+$check = $conn->prepare("SELECT 1 FROM artist_likes WHERE user_id = ? AND artist_id = ?");
+$check->bind_param("is", $userId, $artistId);
+$check->execute();
+$check->store_result();
+$userLiked = $check->num_rows > 0;
+$check->close();
 
 function fetchSpotify($url, $token) {
     $opts = ['http' => [
@@ -62,6 +100,12 @@ $albums = fetchSpotify("https://api.spotify.com/v1/artists/$artistId/albums?incl
       <a href="<?= $artist['external_urls']['spotify'] ?>" target="_blank" class="mt-4 inline-block bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded">
         View on Spotify
       </a>
+      <form method="post" class="inline-block ml-2">
+        <input type="hidden" name="like_artist" value="1">
+        <button type="submit" class="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded">
+          <?= $userLiked ? 'Unlike Artist' : 'Like Artist' ?>
+        </button>
+      </form>
     </div>
   </div>
 
@@ -69,7 +113,7 @@ $albums = fetchSpotify("https://api.spotify.com/v1/artists/$artistId/albums?incl
   <div class="mb-12">
     <h2 class="text-2xl font-semibold mb-4">Top Tracks</h2>
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
-      <?php foreach ($topTracks as $track): ?>
+      <?php foreach (array_slice($topTracks, 0, 8) as $track): ?>
         <div class="bg-gray-800 p-4 rounded-lg shadow hover:bg-gray-700 transition cursor-pointer group relative">
           <img src="<?= $track['album']['images'][0]['url'] ?? '' ?>" class="w-full aspect-square rounded mb-3 object-cover" />
           <p class="text-sm font-semibold truncate"><?= htmlspecialchars($track['name']) ?></p>
@@ -81,17 +125,32 @@ $albums = fetchSpotify("https://api.spotify.com/v1/artists/$artistId/albums?incl
     </div>
   </div>
 
-  <!-- New Tracks (Singles & Albums) -->
+  <!-- New Tracks -->
   <?php
+  $albumsRaw = fetchSpotify("https://api.spotify.com/v1/artists/$artistId/albums?include_groups=album,single&limit=20&market=PH", $accessToken)['items'] ?? [];
+  usort($albumsRaw, function ($a, $b) {
+      return strtotime($b['release_date']) - strtotime($a['release_date']);
+  });
+
   $newTracks = [];
-  foreach ($albums as $release) {
-      $tracksData = fetchSpotify("https://api.spotify.com/v1/albums/{$release['id']}/tracks?limit=3", $accessToken);
+  $addedTrackIds = [];
+
+  foreach ($albumsRaw as $release) {
+      if (count($newTracks) >= 8) break;
+
+      $tracksData = fetchSpotify("https://api.spotify.com/v1/albums/{$release['id']}/tracks?limit=10", $accessToken);
       foreach ($tracksData['items'] ?? [] as $t) {
+          if (count($newTracks) >= 8) break;
+
+          $trackId = $t['id'];
+          if (in_array($trackId, $addedTrackIds)) continue;
+
           $newTracks[] = [
-              'id' => $t['id'],
+              'id' => $trackId,
               'name' => $t['name'],
               'album_image' => $release['images'][0]['url'] ?? null,
           ];
+          $addedTrackIds[] = $trackId;
       }
   }
   ?>
